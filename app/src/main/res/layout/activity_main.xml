@@ -12,15 +12,60 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/text_view" />
+        android:text="Quiz: 1"
+        android:id="@+id/textView_quiznum"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Question"
+        android:id="@+id/textView_question"
+        android:layout_below="@+id/textView_questionnum"
+        android:layout_toRightOf="@+id/button_true"
+        android:layout_toEndOf="@+id/button_true"
+        android:layout_marginTop="131dp" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Button"
-        android:id="@+id/button"
-        android:layout_below="@+id/text_view"
+        android:text="True"
+        android:id="@+id/button_true"
+        android:layout_marginBottom="124dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/textView_questionnum"
+        android:layout_toStartOf="@+id/textView_questionnum" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="False"
+        android:id="@+id/button_false"
+        android:layout_alignTop="@+id/button_true"
+        android:layout_alignRight="@+id/textView_score"
+        android:layout_alignEnd="@+id/textView_score"
+        android:layout_toRightOf="@+id/textView_questionnum"
+        android:layout_toEndOf="@+id/textView_questionnum" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Question: 1"
+        android:id="@+id/textView_questionnum"
+        android:layout_alignBaseline="@+id/textView_score"
+        android:layout_alignBottom="@+id/textView_score"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Score: 0"
+        android:id="@+id/textView_score"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

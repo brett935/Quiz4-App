@@ -1,8 +1,15 @@
+//
+//
+//Brett Napier
+//CSC309 EKU
+//Assignment 7
+//4-19-2016
+//
+//
 package com.brettnapier.quiz4;
 
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Debug;
-import android.support.annotation.RequiresPermission;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,45 +22,104 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity {
 
     TextView textView;
-    Button button;
+    TextView questionView;
+    TextView scoreView;
+    TextView questionNumView;
+    TextView currentQuizView;
+    Button buttonTrue;
+    Button buttonFalse;
+    private String title;
+    private String question1;
+    private String question2;
+    private String question3;
+    private Boolean answer1;
+    private Boolean answer2;
+    private Boolean answer3;
+    private int currentQuiz;
+    private int currentQuestion;
+    private int correctAnswers;
+    List<String> quizList = new ArrayList<>();
+    List<String> questionList = new ArrayList<>();
+    List<Boolean> answerList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = (TextView) findViewById(R.id.text_view );
+        textView = (TextView) findViewById(R.id.textView_quiznum);
+        questionView = (TextView) findViewById( R.id.textView_question);
+        scoreView = (TextView) findViewById( R.id.textView_score );
+        questionNumView = (TextView) findViewById( R.id.textView_questionnum );
+        currentQuizView = (TextView) findViewById( R.id.textView_quiznum );
 
-        button = (Button) findViewById( R.id.button );
-        button.setOnClickListener(new View.OnClickListener() {
+        new dataRequest().execute(); //create object that downloads JSON and parses and stores it
+        currentQuestion=0; //start on the first quiz
+
+        //true button
+        buttonTrue = (Button) findViewById( R.id.button_true );
+        buttonTrue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //String queryData = "?id=9";
-                String queryData = "";
+                //disable button function after no quizzes left
+                if(currentQuestion<questionList.size()) {
+                    //get the answer for the current question and compare it to button
+                    if (answerList.get(currentQuestion) == Boolean.TRUE) {
+                        correctAnswers++;
+                    }
+                    currentQuestion++; //move to next quiz
+                    update(); //call function to update the textview to current quiz
+                }
+                else {
+                    //hide buttons and questions
+                    questionView.setVisibility(View.INVISIBLE);
+                    buttonTrue.setVisibility(View.INVISIBLE);
+                    buttonFalse.setVisibility(View.INVISIBLE);
+                }
 
-                new dataRequest().execute(queryData);
+            }
+        });
+        //false button
+        buttonFalse = (Button) findViewById( R.id.button_false );
+        buttonFalse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //disable button function after no quizzes left
+                    if(currentQuestion<questionList.size()) {
+                        //get the answer for the current question and compare it to button
+                        if (answerList.get(currentQuestion) == Boolean.FALSE) {
+                            correctAnswers++;
+                        }
+                        currentQuestion++; //move to next quiz                                  /////////////////////////problem here, check to make sure it is less than num quizzes
+                        update(); //call function to update the textview to current quiz
+                    }
+                    else {
+                        //hide buttons and questions
+                        questionView.setVisibility(View.INVISIBLE);
+                        buttonTrue.setVisibility(View.INVISIBLE);
+                        buttonFalse.setVisibility(View.INVISIBLE);
+                    }
             }
         });
 
     }
 
-    //class to request JSON data from online server
+    //class to request JSON data from online server and parse it to list
     class dataRequest extends AsyncTask<String,Void,String>{
 
-        private int numQuizes;
+        private int numQuizes; //stores how many quizes were retrieved
 
-
+        //retrieves the amount of quizes available to download
         private int getNumQuizzes(){
-            String m="";
             try{
                 URL url = new URL("http://people.eku.edu/styere/quiz.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -78,23 +144,21 @@ public class MainActivity extends AppCompatActivity {
                     //JSONObject responseData = mResponseObject.getJSONObject( "count");
                     //get the results as an array
                     //JSONArray array = responseData.getJSONArray( "results" );
-                     m = mResponseObject.getString("count");
+                    String m = mResponseObject.getString("count");
                     numQuizes = Integer.valueOf( m );
                 }
-
             }catch (Exception e){
                 textView.setText("Error");
             }
 
-            //clean up references and delete objects
-
             return (numQuizes);
         }
 
+        //downloads, parses JSON and stores it in list
         private void getQuiz(int numQuizes){
-            List<String> quizList;
-            String m="";
-
+            //
+            //change back to (int i=0; i<array.length();i++)
+            //
             for(int i=0; i<numQuizes; i++){
                 try{
                     String urlString = "http://people.eku.edu/styere/quiz.php?id=" +  i;
@@ -119,35 +183,38 @@ public class MainActivity extends AppCompatActivity {
                         //get the query as a JSON object
                         JSONObject mResponseObject = new JSONObject( resp );
                         //JSONObject responseData = mResponseObject.getJSONObject("title");
+                        title = mResponseObject.getString("title");
+                        quizList.add(title); //store in list
 
                         //get the results as an array
                         //JSONArray array = responseData.getJSONArray( "question" );
                         JSONArray array = mResponseObject.getJSONArray("qlist");
 
+
                         //question 1
                         JSONObject arrayObject1 = array.getJSONObject(0);
-                        String question1 = arrayObject1.getString("question");
-                        Boolean answer1 = Boolean.parseBoolean(arrayObject1.getString("answer"));
+                        question1 = arrayObject1.getString("question");
+                        answer1 = Boolean.parseBoolean(arrayObject1.getString("answer"));
+                        questionList.add( question1 ); //store in list
+                        answerList.add( answer1 ); //store in list
 
                         //question 2
                         JSONObject arrayObject2 = array.getJSONObject(1);
-                        String question2 = arrayObject2.getString("question");
-                        Boolean answer2 = Boolean.parseBoolean(arrayObject2.getString("answer"));
+                        question2 = arrayObject2.getString("question");
+                        answer2 = Boolean.parseBoolean(arrayObject2.getString("answer"));
+                        questionList.add( question2 ); //store in list
+                        answerList.add( answer2 ); //store in list
 
                         //question 3
                         JSONObject arrayObject3 = array.getJSONObject(2);
-                        String question3 = arrayObject3.getString("question");
-                        Boolean answer3 = Boolean.parseBoolean( arrayObject3.getString("answer") );
-
-                        //just for debugging
-                        String s = "";
-                        s = s+" ";
+                        question3 = arrayObject3.getString("question");
+                        answer3 = Boolean.parseBoolean(arrayObject3.getString("answer"));
+                        questionList.add( question3 );
+                        answerList.add( answer3 );
                     }
 
-
-
                 }catch (Exception e){
-                    Log.w("",e.getMessage());
+                    Log.w("",e.getMessage()); //write error to log if any
                 }
             }
         }
@@ -158,48 +225,54 @@ public class MainActivity extends AppCompatActivity {
             int num = getNumQuizzes();
             getQuiz(num);
 
-            return"stub";
-            //Debug.waitForDebugger();
-
+            return"";
         }
 
         //process the results
         protected void onPostExecute( String resp ){
-            update(resp);
-           /*
-            try {
-                StringBuilder sb = new StringBuilder();
-                //get the query as a JSON object
-                JSONObject mResponseObject = new JSONObject( resp);
-                //JSONObject responseData = mResponseObject.getJSONObject( "count");
-                //get the results as an array
-                //JSONArray array = responseData.getJSONArray( "results" );
-                String m = mResponseObject.getString("count");
-                numQuizes = Integer.valueOf( m );
-                textView.setText(m);
-
-                */
-                /*
-                //process the first five results
-                for(int i=0; i<array.length(); i++){
-                    String title = array.getJSONObject(i).getString("title" );
-                    String qlist = array.getJSONObject(i).getString("qlist");
-                    String question = array.getJSONObject(i).getString("question");
-                    String answer = array.getJSONObject(i).getString("answer");
-
-                    textView.setText(title.toString() +" "+ qlist.toString() +" "+ question.toString() +" "+ answer.toString());
-                } */
-
-      /*      }catch (Exception e){
-                textView.setText(e.getMessage());
-            }*/
-
+            update(); //update views after JSON has been stored
         }
     }
 
-    public void update(String m){
-        textView.setText(m);
+    public void update(){
+        //textView.setText();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // update views
+                questionView.setText( questionList.get(currentQuestion) ); //load current question in the view
+                scoreView.setText( "Score: " + correctAnswers );
+                questionNumView.setText( "Question: " + (currentQuestion+1) );
+                //determine what quiz you are on, each quiz has 3 questions
+                if (currentQuestion%3==0){
+                    currentQuiz++;
+                }
+                currentQuizView.setText( "Quiz: " + currentQuiz );
+
+            }
+        });
     }
+
+    //called when app is exited
+    protected void onPause(){
+        super.onPause();
+
+        //change the saved value
+        final SharedPreferences preferences = getSharedPreferences( "appdata", MODE_PRIVATE );
+        SharedPreferences.Editor prefEdit = preferences.edit();
+        prefEdit.putInt( "questionNum" , currentQuestion );
+        prefEdit.commit();
+
+    }
+    protected void onResume(){
+        super.onResume();
+
+        //get the current value from shared preferences
+        final SharedPreferences preferences = getSharedPreferences( "appdata", MODE_PRIVATE );
+        int currentQuestion = preferences.getInt("questionNum", 0);
+
+    }
+
 }
 
 
